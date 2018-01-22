@@ -9,7 +9,7 @@ using namespace std;
 // Run & check:
 // $ zlib-flate -uncompress < mylogfile.txt_archive/mylogfile.txt_<curdate_and_time>_3.zlib
 // [<curdate_and_time>] [some_logger_name] [info] 2
-// $ zlib-flate -uncompress < mylogfile.txt_archive/mylogfile.txt_<curdate_and_time>_5.zlib
+// $ zlib-flate -uncompress < mylogfile.txt_archive/mylogfile.txt_<curdate_and_time>.zlib
 // [<curdate_and_time>] [some_logger_name] [info] 3
 // $ cat mylogfile.3.txt
 // [<curdate_and_time>] [some_logger_name] [info] 4

@@ -47,7 +47,10 @@ int def(FILE *source, FILE *dest, int level)
        strm.next_out = out;
        ret = deflate(&strm, flush); /* no bad return value */
        if (ret == Z_STREAM_ERROR)
+       {
+           (void)deflateEnd(&strm);
            throw ZlibWrapperException("not a valid compression level");
+       }
        have = CHUNK - strm.avail_out;
 
        if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
@@ -56,12 +59,18 @@ int def(FILE *source, FILE *dest, int level)
         }
       } while (strm.avail_out == 0);
       if (strm.avail_in != 0)
+      {
+          (void)deflateEnd(&strm);
           throw ZlibWrapperException("not all input will be used");
+      }
 
     /* done when last data in file processed */
     } while (flush != Z_FINISH);
     if (ret != Z_STREAM_END)
+    {
+        (void)deflateEnd(&strm);
         throw ZlibWrapperException("stream of compression is not completed");
+    }
 
     /* clean up and return */
     (void)deflateEnd(&strm);
@@ -109,7 +118,10 @@ int inf(FILE *source, FILE* dest)
        strm.next_out = out;
        ret = inflate(&strm, Z_NO_FLUSH);
        if (ret == Z_STREAM_ERROR)
+       {
+           (void)inflateEnd(&strm);
            throw ZlibWrapperException("not a valid compression level");
+       }
        switch (ret) {
          case Z_NEED_DICT:
          ret = Z_DATA_ERROR; /* and fall through */
@@ -133,46 +145,40 @@ int inf(FILE *source, FILE* dest)
    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
 
-void compress(std::string src, std::string dest, int level)
+void compress(const std::string &src, const std::string &dest, int level)
 {
     FILE *src_file=NULL;    //original file
     FILE *dest_file=NULL;   //file to compress or decompress
-
     src_file = fopen(src.c_str(),"r");
     if(!src_file)
         throw ZlibWrapperException(std::string("File for compression does not exist: ") + src);
-
     dest_file = fopen(dest.c_str(),"wb");   //wb because write to binary format
     if(!dest_file)
         throw ZlibWrapperException(std::string("Can't open file for writting: ") + dest);
 
     int ret = def(src_file, dest_file, level);
-    if (ret != Z_OK)
-        throw ZlibWrapperException(ret);
-
     fclose(src_file);
     fclose(dest_file);
+    if (ret != Z_OK)
+        throw ZlibWrapperException(ret);
 }
 
-void uncompress(std::string src, std::string dest)
+void uncompress(const std::string &src, const std::string &dest)
 {
     FILE *src_file=NULL;    //original file
     FILE *dest_file=NULL;   //file to compress or decompress
-
     src_file = fopen(src.c_str(),"rb");    //rb because read from binary format
     if(!src_file)
         throw ZlibWrapperException(std::string("File for uncompression does not exist: ") + src);
-
     dest_file = fopen(dest.c_str(),"w");
     if(!dest_file)
         throw ZlibWrapperException(std::string("Can't open file for writting: ") + dest);
 
     int ret = inf(src_file, dest_file);
-    if (ret != Z_OK)
-        throw ZlibWrapperException(ret);
-
     fclose(src_file);
     fclose(dest_file);
+    if (ret != Z_OK)
+        throw ZlibWrapperException(ret);
 }
 
 ZlibWrapperException::ZlibWrapperException(int ret) {

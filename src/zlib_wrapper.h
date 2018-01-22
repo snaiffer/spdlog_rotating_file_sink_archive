@@ -4,8 +4,8 @@
 #include <string>
 #include <exception>
 
-class ZlibWrapperException : public std::exception {
-    std::string msg = "Zlib: ";
+class ZlibWrapperException : public std::exception
+{
 public:
     ZlibWrapperException() { }
     ZlibWrapperException(const char *msg_) { msg.append(msg_); }
@@ -14,6 +14,11 @@ public:
     ZlibWrapperException(int ret);
 
     virtual const char* what() const throw() { return msg.c_str(); }
+
+    virtual ~ZlibWrapperException() throw() {}
+
+protected:
+    std::string msg = "Zlib: ";
 };
 
 /*
@@ -23,8 +28,8 @@ Z_BEST_SPEED             1
 Z_BEST_COMPRESSION       9
 Z_DEFAULT_COMPRESSION  (-1)
 */
-void compress(std::string src, std::string dest, int level = -1);
+void compress(const std::string &src, const std::string &dest, int level = -1);
 
-void uncompress(std::string src, std::string dest);
+void uncompress(const std::string &src, const std::string &dest);
 
 #endif // ZLIB_WRAPPER_H
